@@ -1,0 +1,3107 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <title>Plagiarism Detection System</title>
+
+    <style>
+
+        /* ------------------- GLOBAL APP VIBE ------------------- */
+
+        body {
+
+            margin: 0;
+
+            padding: 0;
+
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+
+            background: linear-gradient(135deg, #f7f1ff 0%, #fef6ff 50%, #f4faff 100%);
+
+            color: #312e81;
+
+            min-height: 100vh;
+
+            -webkit-font-smoothing: antialiased;
+
+            -moz-osx-font-smoothing: grayscale;
+
+            line-height: 1.6;
+
+        }
+
+
+
+        code {
+
+            font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+
+        }
+
+
+
+        /* Smooth cards */
+
+        .card, .auth-card, .dashboard-header {
+
+            background: rgba(255, 255, 255, 0.78);
+
+            backdrop-filter: blur(12px);
+
+            border-radius: 14px;
+
+            padding: 1.8rem;
+
+            box-shadow: 0 8px 30px rgba(120, 91, 255, 0.12);
+
+            border: 1px solid rgba(255, 255, 255, 0.45);
+
+        }
+
+
+
+        /* General Layout & Containers */
+
+        .app-container,
+
+        .auth-page-container {
+
+            max-width: 1200px;
+
+            margin: 2rem auto;
+
+            padding: 1.5rem;
+
+            box-sizing: border-box;
+
+        }
+
+
+
+        .card-title, .dashboard-title {
+
+            color: #5b21b6;
+
+            font-weight: 800;
+
+        }
+
+
+
+        .card-title {
+
+            font-size: 1.75rem;
+
+            margin-bottom: 1rem;
+
+        }
+
+
+
+        /* BUTTONS */
+
+        .btn-primary,
+
+        .btn-secondary,
+
+        .btn-logout,
+
+        .btn-check-plagiarism,
+
+        .btn-download-submission,
+
+        #download-plagiarism-report-btn {
+
+            padding: 0.75rem 1.5rem;
+
+            border-radius: 10px;
+
+            font-weight: 700;
+
+            cursor: pointer;
+
+            transition: all 0.2s ease;
+
+            border: none;
+
+            display: inline-block;
+
+            text-align: center;
+
+        }
+
+
+
+        .btn-primary {
+
+            background: linear-gradient(90deg, #7c3aed, #a855f7);
+
+            color: #fff;
+
+        }
+
+        .btn-primary:hover { transform: translateY(-3px); background: linear-gradient(90deg,#6d28d9,#9333ea); }
+
+
+
+        .btn-secondary {
+
+            background: linear-gradient(90deg, #10b981, #34d399);
+
+            color: #fff;
+
+            border-radius: 10px;
+
+        }
+
+        .btn-secondary:hover { transform: translateY(-3px); opacity: 0.95; }
+
+
+
+        .btn-logout {
+
+            background: linear-gradient(90deg, #ef4444, #f87171);
+
+            color: #fff;
+
+            border-radius: 10px;
+
+        }
+
+        .btn-logout:hover { transform: translateY(-3px); opacity: 0.95; }
+
+
+
+        .btn-check-plagiarism {
+
+            background: linear-gradient(90deg, #a21caf, #c026d3);
+
+            color: #fff;
+
+            margin-top: 0;
+
+        }
+
+        .btn-check-plagiarism:hover { transform: translateY(-2px); }
+
+
+
+        .btn-download-submission {
+
+            background: linear-gradient(90deg, #0ea5e9, #38bdf8);
+
+            color: #fff;
+
+        }
+
+        .btn-download-submission:hover { opacity: 0.94; }
+
+
+
+        /* Forms */
+
+        .auth-form,
+
+        .form-layout { margin-top: 1.5rem; display:flex; flex-direction:column; gap:1rem; }
+
+
+
+        .form-group { margin-bottom: 1rem; }
+
+
+
+        .form-label {
+
+            display: block;
+
+            font-size: 0.9rem;
+
+            font-weight: 600;
+
+            color: #4b3268;
+
+            margin-bottom: 0.5rem;
+
+        }
+
+
+
+        .input-field, .textarea-field, select {
+
+            width: 100%;
+
+            padding: 0.9rem;
+
+            border: 1px solid #e9d5ff;
+
+            border-radius: 10px;
+
+            font-size: 1rem;
+
+            color: #2d3748;
+
+            box-sizing: border-box;
+
+            background: rgba(255,255,255,0.92);
+
+        }
+
+        .input-field:focus, .textarea-field:focus {
+
+            outline: none;
+
+            border-color: #a855f7;
+
+            box-shadow: 0 0 8px rgba(168,85,247,0.28);
+
+        }
+
+
+
+        .textarea-field { min-height: 8rem; resize: vertical; }
+
+
+
+        .radio-group { display:flex; gap:1rem; }
+
+
+
+        /* Messages */
+
+        .message { margin-top: 1rem; padding: 0.75rem; border-radius: 0.375rem; text-align:center; font-weight:500; }
+
+        .message-error { background: #fff1f2; color: #b91c1c; }
+
+        .message-success { background: #ecfdf5; color: #065f46; }
+
+
+
+        /* Auth Page Specifics */
+
+        .auth-page-container { display:flex; align-items:center; justify-content:center; min-height:100vh; }
+
+
+
+        .auth-card { width:100%; max-width:460px; padding:2rem; border-radius:14px; }
+
+
+
+        .auth-title { font-size:2.0rem; text-align:center; color:#4b21b6; margin-bottom:1.25rem; }
+
+
+
+        /* Dashboard Header */
+
+        .dashboard-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; padding:1rem; border-radius:12px; }
+
+
+
+        .dashboard-title { font-size:2.2rem; color: #4b21b6; }
+
+
+
+        .info-text { color: #6b7280; font-style: italic; }
+
+
+
+        /* ASSIGNMENTS GRID */
+
+        .assignments-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:1.25rem; }
+
+
+
+        .assignment-card {
+
+            background: linear-gradient(180deg, #fff 0%, #fbf8ff 100%);
+
+            padding: 1.25rem;
+
+            border-radius: 12px;
+
+            box-shadow: 0 6px 16px rgba(139,92,246,0.10);
+
+            border: 1px solid #efe6ff;
+
+            cursor: pointer;
+
+            transition: transform .18s ease, box-shadow .18s ease;
+
+        }
+
+        .assignment-card:hover { transform: translateY(-6px); box-shadow: 0 14px 30px rgba(139,92,246,0.14); }
+
+        .assignment-card .delete-btn {
+
+            position:absolute; top:12px; right:12px; background:#ff6b6b; color:white; border:none; width:36px; height:36px; border-radius:50%; font-weight:700; cursor:pointer;
+
+        }
+
+        .assignment-card .delete-btn:hover { background:#ff4c4c; }
+
+
+
+        .assignment-card-selected { border-color: #8b5cf6; background:#f5f3ff; box-shadow: 0 10px 26px rgba(139,92,246,0.16); }
+
+
+
+        .assignment-card-disabled { opacity:0.65; cursor:not-allowed; background:#faf5ff; }
+
+
+
+        .assignment-card-submitted { background:#f0fdf4; border-color:#bbf7d0; }
+
+
+
+        .assignment-name { font-size:1.15rem; font-weight:700; color:#2c0d57; margin-bottom:0.4rem; }
+
+        .assignment-description { color:#5b4b6b; font-size:0.95rem; min-height:38px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+
+        .assignment-meta { font-size:0.85rem; color:#6b7280; margin-top:0.6rem; }
+
+
+
+        .status-text { font-size:0.85rem; font-weight:700; margin-top:0.5rem; }
+
+        .status-text-error { color:#ef4444; }
+
+        .status-text-success { color:#10b981; }
+
+
+
+        /* SUBMISSIONS LIST */
+
+        .submissions-list { display:flex; flex-direction:column; gap:1rem; margin-top:1rem; }
+
+        .submissions-header { display:grid; grid-template-columns:0.6fr 2fr 1fr 1fr 2fr; gap:1rem; font-weight:600; padding:0.5rem 1rem; background:#f3eefc; border-radius:10px; margin-bottom:0.5rem; }
+
+        .submission-item {
+
+            background: rgba(255,255,255,0.95);
+
+            padding:1rem;
+
+            border-radius:10px;
+
+            border:1px solid #efe6ff;
+
+            box-shadow: 0 6px 14px rgba(139,92,246,0.06);
+
+            display:grid; grid-template-columns:0.6fr 2fr 1fr 1fr 2fr; gap:1rem; align-items:center;
+
+        }
+
+        .submission-grid-item { padding:0.3rem; word-break:break-word; }
+
+
+
+        .submission-actions { display:flex; flex-direction:column; gap:0.6rem; align-items:stretch; }
+
+        .submission-actions .btn-primary, .submission-actions .btn-check-plagiarism { padding:0.5rem 0.6rem; font-size:0.88rem; min-height:40px; }
+
+
+
+        .submission-content-preview { display:none; } /* hidden in list view */
+
+
+
+        .submission-item-submitted { background:#f0fff4; border-color:#bbf7d0; }
+
+
+
+        /* Student photo styling */
+
+        .student-photo { width:56px; height:56px; border-radius:50%; object-fit:cover; margin-right:12px; border: 3px solid rgba(124,58,237,0.12); }
+
+
+
+        .submission-item-header { display:flex; align-items:center; gap:12px; }
+
+
+
+        /* MODAL */
+
+        .modal { display:none; position:fixed; z-index:1200; left:0; top:0; width:100%; height:100%; overflow:auto; background:rgba(15,6,46,0.45); backdrop-filter: blur(6px); justify-content:center; align-items:center; }
+
+        .modal-content { background:white; border-radius:16px; padding:2rem; width:90%; max-width:900px; border:1px solid #efe6ff; box-shadow: 0 20px 40px rgba(80,0,189,0.12); }
+
+        .close-btn { color:#6b7280; font-size:26px; font-weight:700; cursor:pointer; }
+
+        .full-submission-text { white-space:pre-wrap; font-family:'Courier New', monospace; font-size:0.95rem; background:#faf5ff; padding:1rem; border-radius:10px; border:1px solid #efe6ff; max-height:56vh; overflow-y:auto; color:#3b0764; }
+
+
+
+        /* REPORT */
+
+        .plagiarism-report-card { padding:1.8rem; border-radius:16px; background:white; border:1px solid #efe6ff; box-shadow: 0 12px 28px rgba(139,92,246,0.12); }
+
+        .plagiarism-report-container { background:#faf5ff; border-radius:12px; padding:1.25rem; border:1px solid #efe6ff; }
+
+
+
+        .flagged-phrase { background:#ffe4e6; color:#be123c; font-weight:700; padding:4px 8px; border-radius:8px; }
+
+
+
+        .source-info { color:#6d28d9; font-style:italic; font-size:0.9rem; margin-top:6px; }
+
+
+
+        /* LOADING SCREEN */
+
+        .loading-screen { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:1300; background:rgba(247,243,255,0.85); backdrop-filter: blur(6px); }
+
+        .spinner { width:48px; height:48px; border-radius:50%; border:6px solid rgba(124,58,237,0.12); border-top-color:#7c3aed; animation:spin 1s linear infinite; margin-bottom:10px; }
+
+        @keyframes spin { to { transform:rotate(360deg);} }
+
+
+
+        /* RESPONSIVE TWEAKS */
+
+        @media (max-width: 900px) {
+
+            .submissions-header, .submission-item { grid-template-columns: 1fr 2fr 1fr; }
+
+            .submission-actions { flex-direction:row; gap:8px; }
+
+            .assignments-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+
+        }
+
+
+
+        /* small helpers for pie (REMOVED) */
+
+
+
+    </style>
+
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+</head>
+
+<body>
+
+    <div id="app-root"></div>
+
+    <div id="submission-modal" class="modal">
+
+        <div class="modal-content">
+
+            <span id="close-modal-btn" class="close-btn">&times;</span>
+
+            <h3 id="modal-title" class="card-title">Submitted Document</h3>
+
+            <pre id="full-submission-content" class="full-submission-text"></pre>
+
+            <button id="download-submission-btn" class="btn-primary btn-download-submission">Download</button>
+
+        </div>
+
+    </div>
+
+
+
+    <script>
+
+        console.log("Script execution started."); // Debug log at script start
+
+
+
+        const API_BASE_URL = 'http://localhost:5001/api';
+
+        let currentUser = null;
+
+        let pollingIntervals = {};
+
+        let currentPlagiarismReport = '';
+
+
+
+        const BRANCHES = ["CSE", "INF", "ECE", "CSM", "AIDS", "CIC", "EEE", "MECH"];
+
+
+
+        // --- ALL FUNCTION DECLARATIONS MOVED TO THE TOP FOR PROPER SCOPING ---
+
+
+
+        function showSection(sectionId) {
+
+            document.querySelectorAll('.app-section').forEach(section => {
+
+                section.style.display = 'none';
+
+            });
+
+            const section = document.getElementById(sectionId);
+
+            if (section) section.style.display = 'block';
+
+        }
+
+
+
+        function showMessage(elementId, msg, isError = false) {
+
+            const el = document.getElementById(elementId);
+
+            if (el) {
+
+                el.textContent = msg;
+
+                el.className = `message ${isError ? 'message-error' : 'message-success'}`;
+
+                el.style.display = 'block';
+
+            }
+
+        }
+
+
+
+        function hideMessage(elementId) {
+
+            const el = document.getElementById(elementId);
+
+            if (el) el.style.display = 'none';
+
+        }
+
+
+
+        function setLoading(isLoading) {
+
+            const loadingScreen = document.getElementById('loading-screen');
+
+            if (loadingScreen) {
+
+                loadingScreen.style.display = isLoading ? 'flex' : 'none';
+
+            }
+
+        }
+
+
+
+        function saveUserToLocalStorage(user) {
+
+            localStorage.setItem('currentUser', JSON.stringify(user));
+
+            currentUser = user;
+
+        }
+
+
+
+        function removeUserFromLocalStorage() {
+
+            localStorage.removeItem('currentUser');
+
+            currentUser = null;
+
+        }
+
+
+
+        function clearAllIntervals() {
+
+            for (const key in pollingIntervals) {
+
+                clearInterval(pollingIntervals[key]);
+
+            }
+
+            pollingIntervals = {};
+
+        }
+
+
+
+        async function executeAuthRequest(endpoint, payload, isLogin) {
+
+            console.log("Executing auth request to:", endpoint);
+
+            console.log("Payload:", payload); // Log the payload being sent
+
+            try {
+
+                const response = await fetch(endpoint, {
+
+                    method: 'POST',
+
+                    headers: { 'Content-Type': 'application/json' },
+
+                    body: JSON.stringify(payload)
+
+                });
+
+                const data = await response.json();
+
+                console.log("Auth response:", data); // Log the response from the backend
+
+
+
+                if (response.ok) {
+
+                    if (isLogin) {
+
+                        saveUserToLocalStorage({ userId: data.userId, userRole: data.userRole });
+
+                        renderApp();
+
+                    } else {
+
+                        showMessage('auth-message', 'Account created successfully! Please log in.', false);
+
+                        renderAuth();
+
+                        document.getElementById('auth-title').textContent = 'Login';
+
+                        document.getElementById('auth-submit-btn').textContent = 'Login';
+
+                        document.getElementById('auth-role-selection').style.display = 'none';
+
+                        document.getElementById('auth-branch-selection').style.display = 'none';
+
+                        document.getElementById('auth-photo-upload').style.display = 'none'; // Hide photo upload after signup
+
+                        document.getElementById('auth-switch-btn').textContent = 'Sign Up';
+
+                        document.getElementById('auth-switch-text').textContent = "Don't have an account?";
+
+                    }
+
+                } else {
+
+                    showMessage('auth-message', `Error: ${data.error || 'Something went wrong'}`, true);
+
+                }
+
+            } catch (error) {
+
+                console.error("Network or fetch error:", error); // Log network errors
+
+                showMessage('auth-message', `Error: Could not connect to the server. Please ensure the Python backend is running at ${API_BASE_URL}.`, true);
+
+            } finally {
+
+                setLoading(false);
+
+            }
+
+        }
+
+
+
+        async function handleAuthSubmit(event) {
+
+            event.preventDefault();
+
+            hideMessage('auth-message');
+
+            setLoading(true);
+
+
+
+            const isLogin = document.getElementById('auth-title').textContent === 'Login';
+
+            const email = document.getElementById('auth-email').value;
+
+            const password = document.getElementById('auth-password').value;
+
+
+
+            const endpoint = isLogin ? `${API_BASE_URL}/auth/login` : `${API_BASE_URL}/auth/signup`;
+
+            let payload = { email, password };
+
+
+
+            if (!isLogin) { // This is a signup attempt
+
+                const role = document.querySelector('input[name="auth-role"]:checked')?.value || 'student';
+
+                const branch = document.getElementById('auth-branch')?.value;
+
+                const photoFile = document.getElementById('auth-photo')?.files[0];
+
+
+
+                if (!branch) {
+
+                    showMessage('auth-message', "Please select your branch.", true);
+
+                    setLoading(false);
+
+                    return;
+
+                }
+
+                payload.role = role;
+
+                payload.branch = branch;
+
+
+
+                if (role === 'student') { // Photo is only required for students
+
+                    if (!photoFile) {
+
+                        showMessage('auth-message', "Please upload a photo for student registration.", true);
+
+                        setLoading(false);
+
+                        return;
+
+                    }
+
+                    const MAX_PHOTO_SIZE_BYTES = 500 * 1024; // 500 KB
+
+                    if (photoFile.size > MAX_PHOTO_SIZE_BYTES) {
+
+                        showMessage('auth-message', `Photo size exceeds ${MAX_PHOTO_SIZE_BYTES / 1024}KB. Please choose a smaller image.`, true);
+
+                        setLoading(false);
+
+                        return;
+
+                    }
+
+
+
+                    const reader = new FileReader();
+
+                    reader.readAsDataURL(photoFile);
+
+                    reader.onload = async () => {
+
+                        payload.photo = reader.result;
+
+                        await executeAuthRequest(endpoint, payload, isLogin);
+
+                    };
+
+                    reader.onerror = () => {
+
+                        showMessage('auth-message', "Failed to read photo file.", true);
+
+                        setLoading(false);
+
+                    };
+
+                } else {
+
+                    // For teacher signup (no photo required), or if student but no photo file (already handled above)
+
+                    await executeAuthRequest(endpoint, payload, isLogin);
+
+                }
+
+            } else {
+
+                // For login, execute the request directly
+
+                await executeAuthRequest(endpoint, payload, isLogin);
+
+            }
+
+        }
+
+
+
+        function handleLogout() {
+
+            clearAllIntervals();
+
+            removeUserFromLocalStorage();
+
+            renderApp();
+
+        }
+
+
+
+        function renderAuth() {
+
+            document.getElementById('app-root').innerHTML = `
+
+                <div id="auth-page" class="auth-page-container app-section">
+
+                    <div class="auth-card">
+
+                        <h2 id="auth-title" class="auth-title">Login</h2>
+
+                        <form id="auth-form" class="auth-form">
+
+                            <div class="form-group">
+
+                                <label class="form-label" for="auth-email">Email</label>
+
+                                <input type="email" id="auth-email" class="input-field" placeholder="your@example.com" required>
+
+                            </div>
+
+                            <div class="form-group">
+
+                                <label class="form-label" for="auth-password">Password</label>
+
+                                <input type="password" id="auth-password" class="input-field" placeholder="********" required>
+
+                            </div>
+
+                            <div id="auth-role-selection" class="form-group" style="display: none;">
+
+                                <label class="form-label">Role</label>
+
+                                <div class="radio-group">
+
+                                    <label class="radio-label">
+
+                                        <input type="radio" name="auth-role" value="student" checked>
+
+                                        <span class="radio-text">Student</span>
+
+                                    </label>
+
+                                    <label class="radio-label">
+
+                                        <input type="radio" name="auth-role" value="teacher">
+
+                                        <span class="radio-text">Teacher</span>
+
+                                    </label>
+
+                                </div>
+
+                            </div>
+
+                            <div id="auth-branch-selection" class="form-group" style="display:none;">
+
+                                <label class="form-label" for="auth-branch">Branch</label>
+
+                                <select id="auth-branch" class="input-field">
+
+                                    <option value="">Select a branch</option>
+
+                                    ${BRANCHES.map(b => `<option value="${b}">${b}</option>`).join('')}
+
+                                </select>
+
+                            </div>
+
+                            <div id="auth-photo-upload" class="form-group" style="display:none;">
+
+                                <label class="form-label" for="auth-photo">Upload Photo (for students, max 500KB)</label>
+
+                                <input type="file" id="auth-photo" class="input-field" accept="image/png, image/jpeg">
+
+                            </div>
+
+                            <button type="submit" id="auth-submit-btn" class="btn-primary">Login</button>
+
+                        </form>
+
+                        <p id="auth-message" class="message" style="display:none;"></p>
+
+                        <p class="auth-switch-text">
+
+                            <span id="auth-switch-text">Don't have an account?</span>
+
+                            <button id="auth-switch-btn" class="auth-switch-button">Sign Up</button>
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+            `;
+
+            const authForm = document.getElementById('auth-form');
+
+            if (authForm) authForm.addEventListener('submit', handleAuthSubmit);
+
+            const authSwitchBtn = document.getElementById('auth-switch-btn');
+
+            if (authSwitchBtn) authSwitchBtn.addEventListener('click', () => {
+
+                const titleEl = document.getElementById('auth-title');
+
+                const submitBtnEl = document.getElementById('auth-submit-btn');
+
+                const roleSelectionEl = document.getElementById('auth-role-selection');
+
+                const branchSelectionEl = document.getElementById('auth-branch-selection');
+
+                const photoUploadEl = document.getElementById('auth-photo-upload');
+
+                const switchTextEl = document.getElementById('auth-switch-text');
+
+                const switchBtnEl = document.getElementById('auth-switch-btn');
+
+
+
+                const isLogin = titleEl.textContent === 'Login';
+
+                titleEl.textContent = isLogin ? 'Sign Up' : 'Login';
+
+                submitBtnEl.textContent = isLogin ? 'Sign Up' : 'Login';
+
+                roleSelectionEl.style.display = isLogin ? 'block' : 'none';
+
+
+
+                // When switching to Sign Up, always show branch selection
+
+                branchSelectionEl.style.display = isLogin ? 'none' : 'block';
+
+
+
+                // Show photo upload only if switching to signup AND student role is default/selected
+
+                if (!isLogin) {
+
+                    document.querySelector('input[name="auth-role"][value="student"]').checked = true; // Default to student
+
+                    photoUploadEl.style.display = 'block'; // Show photo upload for student default
+
+                } else {
+
+                    photoUploadEl.style.display = 'none'; // Hide for login
+
+                }
+
+
+
+                switchTextEl.textContent = isLogin ? "Already have an account?" : "Don't have an account?";
+
+                switchBtnEl.textContent = isLogin ? 'Login' : 'Sign Up';
+
+
+
+                hideMessage('auth-message');
+
+            });
+
+
+
+            const roleRadios = document.querySelectorAll('input[name="auth-role"]');
+
+            roleRadios.forEach(radio => {
+
+                radio.addEventListener('change', (e) => {
+
+                    const branchSelectionEl = document.getElementById('auth-branch-selection');
+
+                    const photoUploadEl = document.getElementById('auth-photo-upload');
+
+                    // If it's the signup form
+
+                    if (document.getElementById('auth-title').textContent === 'Sign Up') {
+
+                         if (e.target.value === 'student') {
+
+                            branchSelectionEl.style.display = 'block';
+
+                            photoUploadEl.style.display = 'block'; // Show photo upload for student
+
+                        } else {
+
+                            // If teacher is selected during signup, show branch selection but hide photo upload
+
+                            branchSelectionEl.style.display = 'block'; // Keep branch visible for teacher signup
+
+                            photoUploadEl.style.display = 'none'; // Hide photo upload for teacher
+
+                        }
+
+                    }
+
+                });
+
+            });
+
+
+
+            showSection('auth-page');
+
+        }
+
+
+
+        /* ----------------------------
+
+         * PIE DRAWING UTILITY (REMOVED)
+
+         * ---------------------------- */
+
+        function drawPie(canvasId, values, labels, colors) {
+
+            // Functionality removed
+
+            const canvas = document.getElementById(canvasId);
+
+            if (canvas) {
+
+                const ctx = canvas.getContext('2d');
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = '#f0f0f0';
+
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = '#888';
+
+                ctx.font = '12px Arial';
+
+                ctx.textAlign = 'center';
+
+                ctx.fillText('Pie Chart Removed', canvas.width / 2, canvas.height / 2);
+
+            }
+
+        }
+
+
+
+
+
+        /* ----------------------------
+
+         * parseAndStyleReport
+
+         * ---------------------------- */
+
+        function parseAndStyleReport(reportText) {
+
+            console.log("parseAndStyleReport: Raw reportText received:", reportText);
+
+
+
+            let html = reportText;
+
+
+
+            if (!reportText || reportText.trim().length === 0) {
+
+                return '<p class="message message-error">The plagiarism report is empty. No content was generated by the AI, or it contained only whitespace. This may indicate no significant plagiarism or an issue with the AI\'s response generation based on the provided content.</p>';
+
+            }
+
+
+
+            // Convert markdown-like headings to h4
+
+            html = html.replace(/\*\*(.*?)\*\*/g, '<h4>$1</h4>');
+
+            // preserve new lines
+
+            html = html.replace(/\n/g, '<br>');
+
+
+
+            const finalHtml = `<div class="plagiarism-report-container">${html}</div>`;
+
+            return finalHtml;
+
+        }
+
+
+
+        async function handleCheckPlagiarism(event, submission) {
+
+            hideMessage('teacher-message');
+
+            setLoading(true);
+
+            const plagiarismReportCard = document.getElementById('plagiarism-report-card');
+
+            const plagiarismReportContent = document.getElementById('plagiarism-report-content');
+
+            const downloadBtn = document.getElementById('download-plagiarism-report-btn');
+
+
+
+            plagiarismReportCard.style.display = 'block';
+
+            downloadBtn.style.display = 'none';
+
+            plagiarismReportContent.innerHTML = `
+
+                <div class="loading-indicator">
+
+                    <div class="spinner"></div>
+
+                    <p class="loading-text">Generating report...</p>
+
+                </div>
+
+            `;
+
+
+
+            try {
+
+                const response = await fetch(`${API_BASE_URL}/plagiarism/check`, {
+
+                    method: 'POST',
+
+                    headers: { 'Content-Type': 'application/json' },
+
+                    body: JSON.stringify({
+
+                        teacherId: currentUser.userId,
+
+                        submittedContent: submission.content,
+
+                        assignmentId: submission.assignmentId,
+
+                        submissionId: submission._id
+
+                    })
+
+                });
+
+                const data = await response.json();
+
+                console.log("Backend response for plagiarism check:", data); // Log the full response
+
+
+
+                if (response.ok) {
+
+                    currentPlagiarismReport = data.report || '';
+
+
+
+                    // create styled HTML from raw text (existing behavior)
+
+                    const tempDiv = document.createElement('div');
+
+                    tempDiv.innerHTML = parseAndStyleReport(currentPlagiarismReport);
+
+
+
+                    // Clear and append the styled content
+
+                    plagiarismReportContent.innerHTML = '';
+
+                    plagiarismReportContent.appendChild(tempDiv);
+
+
+
+                    // --- PIE CHART CODE REMOVED ---
+
+                    // No pie chart generated or displayed here.
+
+
+
+                    // Scroll report into view automatically
+
+                    setTimeout(() => {
+
+                        document.getElementById('plagiarism-report-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    }, 150);
+
+
+
+                    // Only show download button if there's actual content to download
+
+                    if (currentPlagiarismReport && currentPlagiarismReport.trim().length > 0) {
+
+                        downloadBtn.style.display = 'block';
+
+                    } else {
+
+                        downloadBtn.style.display = 'none';
+
+                    }
+
+
+
+                } else {
+
+                    currentPlagiarismReport = '';
+
+                    plagiarismReportContent.innerHTML = `<p class="message message-error">Error: ${data.error || 'Could not generate report.'}</p>`;
+
+                    downloadBtn.style.display = 'none';
+
+                }
+
+            } catch (error) {
+
+                currentPlagiarismReport = '';
+
+                plagiarismReportContent.innerHTML = `<p class="message message-error">Error: Could not connect to the backend for plagiarism check. Please ensure the Python backend is running at ${API_BASE_URL}.</p>`;
+
+                downloadBtn.style.display = 'none';
+
+                console.error("Frontend fetch error during plagiarism check:", error);
+
+            } finally {
+
+                setLoading(false);
+
+            }
+
+        }
+
+
+
+        function downloadReport() {
+
+            if (!currentPlagiarismReport) {
+
+                // Using custom message box instead of alert
+
+                new Promise(resolve => {
+
+                    const modal = document.getElementById('submission-modal');
+
+                    const modalTitle = document.getElementById('modal-title');
+
+                    const modalContent = document.getElementById('full-submission-content');
+
+                    const downloadBtn = document.getElementById('download-submission-btn');
+
+                    const closeModalBtn = document.getElementById('close-modal-btn');
+
+
+
+                    modalTitle.textContent = "Download Error";
+
+                    modalContent.textContent = "No report to download. Please generate a report first.";
+
+                    downloadBtn.style.display = 'none'; // Hide download button for this message
+
+                    closeModalBtn.onclick = () => {
+
+                        modal.style.display = 'none';
+
+                        resolve();
+
+                    };
+
+                    modal.style.display = 'flex';
+
+                });
+
+                return;
+
+            }
+
+            // Download plagiarism report as styled PDF
+
+            downloadFile(currentPlagiarismReport, 'plagiarism_report.pdf', 'pdf-styled');
+
+        }
+
+
+
+        // Modified downloadFile function to handle PDF generation for both plain text and styled HTML
+
+        async function downloadFile(content, filename, type = 'text') {
+
+            const { jsPDF } = window.jspdf; // Get jsPDF from the global window object
+
+
+
+            if (type === 'pdf-styled') {
+
+                const element = document.getElementById('plagiarism-report-content'); // The div containing the styled report
+
+                if (!element) {
+
+                    console.error("Element for styled PDF download not found:", 'plagiarism-report-content');
+
+                    alert("Could not find report content to download.");
+
+                    return;
+
+                }
+
+
+
+                setLoading(true); // Show loading indicator while generating PDF
+
+                try {
+
+                    // Temporarily adjust overflow to ensure html2canvas captures full content
+
+                    element.style.overflowY = 'visible';
+
+                    element.style.height = 'auto';
+
+
+
+                    const canvas = await html2canvas(element, {
+
+                        scale: 2, // Increase scale for better resolution in PDF
+
+                        useCORS: true, // Important if you have images from other origins
+
+                        logging: true // Enable logging for html2canvas to debug issues
+
+                    });
+
+
+
+                    // Revert overflow styles
+
+                    element.style.overflowY = '';
+
+                    element.style.height = '';
+
+
+
+                    const imgData = canvas.toDataURL('image/png');
+
+                    const imgWidth = 210; // A4 width in mm
+
+                    const pageHeight = 297; // A4 height in mm
+
+                    const imgHeight = canvas.height * imgWidth / canvas.width;
+
+                    let heightLeft = imgHeight;
+
+
+
+                    const doc = new jsPDF('p', 'mm', 'a4');
+
+                    let position = 0;
+
+
+
+                    doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+
+                    heightLeft -= pageHeight;
+
+
+
+                    while (heightLeft >= 0) {
+
+                        position = heightLeft - imgHeight;
+
+                        doc.addPage();
+
+                        doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+
+                        heightLeft -= pageHeight;
+
+                    }
+
+                    doc.save(filename);
+
+                } catch (error) {
+
+                    console.error("Error generating styled PDF:", error);
+
+                    alert("Failed to generate styled PDF. Check console for details.");
+
+                } finally {
+
+                    setLoading(false); // Hide loading indicator
+
+                }
+
+
+
+            } else if (type === 'pdf-text') {
+
+                // Plain text to PDF conversion (for submissions)
+
+                const doc = new jsPDF();
+
+
+
+                const lines = doc.splitTextToSize(content, 180); // Adjust 180 for desired text width
+
+                const lineHeight = 10; // Adjust for desired line spacing
+
+                let y = 10; // Initial Y position
+
+
+
+                lines.forEach(line => {
+
+                    if (y > doc.internal.pageSize.height - 20) { // Check if new page is needed (20 is bottom margin)
+
+                        doc.addPage();
+
+                        y = 10; // Reset Y for new page
+
+                    }
+
+                    doc.text(line, 10, y); // Add text at X=10, Y
+
+                    y += lineHeight;
+
+                });
+
+
+
+                doc.save(filename);
+
+            } else {
+
+                // Original plain text file download logic (if type is not specified or 'text')
+
+                const blob = new Blob([content], { type: 'text/plain' });
+
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+
+                a.href = url;
+
+                a.download = filename;
+
+                document.body.appendChild(a);
+
+                a.click();
+
+                document.body.removeChild(a);
+
+                URL.revokeObjectURL(url);
+
+            }
+
+        }
+
+
+
+        function viewFullSubmission(encodedContent) {
+
+            const content = decodeURIComponent(encodedContent);
+
+            const modal = document.getElementById('submission-modal');
+
+            const modalContent = document.getElementById('full-submission-content');
+
+            const downloadBtn = document.getElementById('download-submission-btn');
+
+
+
+            modalContent.textContent = content;
+
+            // Download submission as plain text PDF
+
+            downloadBtn.onclick = () => downloadFile(content, 'submission.pdf', 'pdf-text');
+
+            modal.style.display = 'flex';
+
+        }
+
+
+
+        async function renderTeacherDashboard() {
+
+            console.log("renderTeacherDashboard called."); // Debug log
+
+            document.getElementById('app-root').innerHTML = `
+
+                <div id="teacher-dashboard" class="app-container app-section">
+
+                    <div class="dashboard-header">
+
+                        <h1 class="dashboard-title">Teacher Dashboard</h1>
+
+                        <div style="display:flex; gap:12px; align-items:center;">
+
+                            <button id="overall-check-btn" class="btn-check-plagiarism">Check All Students</button>
+
+                            <button id="teacher-logout-btn" class="btn-logout">Logout</button>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <p id="teacher-message" class="message" style="display:none;"></p>
+
+
+
+                    <div class="card">
+
+                        <h2 class="card-title">Create New Assignment</h2>
+
+                        <button id="toggle-create-form-btn" class="btn-secondary">Create Assignment</button>
+
+                        <form id="create-assignment-form" class="form-layout" style="display:none;">
+
+                            <div class="form-group">
+
+                                <label class="form-label" for="new-assignment-name">Assignment Name</label>
+
+                                <input type="text" id="new-assignment-name" class="input-field" required>
+
+                            </div>
+
+                            <div class="form-group">
+
+                                <label class="form-label" for="new-assignment-description">Description</label>
+
+                                <textarea id="new-assignment-description" class="input-field textarea-field"></textarea>
+
+                            </div>
+
+                            <div class="form-group">
+
+                                <label class="form-label" for="new-assignment-deadline">Deadline</label>
+
+                                <input type="datetime-local" id="new-assignment-deadline" class="input-field" required>
+
+                            </div>
+
+                            <div class="form-group">
+
+                                <label class="form-label">Branches</label>
+
+                                <div id="branch-checkboxes" class="branch-checkbox-group">
+
+                                    ${BRANCHES.map(b => `
+
+                                        <label class="branch-checkbox-label" style="display:inline-flex; align-items:center; gap:8px; margin-right:10px;">
+
+                                            <input type="checkbox" name="assignment-branch" value="${b}">
+
+                                            <span>${b}</span>
+
+                                        </label>
+
+                                    `).join('')}
+
+                                </div>
+
+                            </div>
+
+                            <div class="form-group">
+
+                                <label class="form-label" for="total-students">Total Students</label>
+
+                                <input type="number" id="total-students" class="input-field" required min="1">
+
+                            </div>
+
+                            <button type="submit" class="btn-primary">Save Assignment</button>
+
+                        </form>
+
+                    </div>
+
+
+
+                    <div class="card">
+
+                        <h2 class="card-title">Your Assignments</h2>
+
+                        <div id="assignments-list" class="assignments-grid">
+
+                            <p class="info-text">Loading assignments...</p>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div id="selected-assignment-details" class="card" style="display:none;">
+
+                        <h2 id="selected-assignment-title" class="card-title"></h2>
+
+                        <p id="submissions-summary" class="info-text"></p>
+
+                        <div id="submissions-list-container">
+
+                            <div id="submissions-list-header" class="submissions-header">
+
+                                <span class="submissions-header-item">Photo</span>
+
+                                <span class="submissions-header-item">Name</span>
+
+                                <span class="submissions-header-item">Roll No</span>
+
+                                <span class="submissions-header-item">Submitted At</span>
+
+                                <span class="submissions-header-item">Actions</span>
+
+                            </div>
+
+                            <div id="submissions-list">
+
+                                <p class="info-text">Loading submissions...</p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div id="plagiarism-report-card" class="card" style="display:none;">
+
+                        <h2 class="card-title">Plagiarism Report</h2>
+
+                        <div id="plagiarism-report-content">
+
+                            <div class="loading-indicator">
+
+                                <div class="spinner"></div>
+
+                                <p class="loading-text">Generating report...</p>
+
+                            </div>
+
+                        </div>
+
+                        <button id="download-plagiarism-report-btn" class="btn-primary" style="display: none; margin-top: 1rem;">Download Report</button>
+
+                    </div>
+
+                </div>
+
+            `;
+
+            showSection('teacher-dashboard');
+
+
+
+            document.getElementById('teacher-logout-btn').addEventListener('click', handleLogout);
+
+
+
+            const overallCheckBtn = document.getElementById('overall-check-btn');
+
+            if (overallCheckBtn) {
+
+                overallCheckBtn.addEventListener('click', async () => {
+
+                    // trigger overall check behavior - same logic can be implemented in backend call
+
+                    // we simply iterate visible submissions and request checks one by one (teacher requested)
+
+                    const detailsCard = document.getElementById('selected-assignment-details');
+
+                    const aid = detailsCard?.dataset?.assignmentId;
+
+                    if (!aid) {
+
+                        showMessage('teacher-message', 'Select an assignment first to run overall check', true);
+
+                        return;
+
+                    }
+
+                    // Click each Plagiarism Check button programmatically
+
+                    document.querySelectorAll('.btn-check-plagiarism').forEach(btn => btn.click());
+
+                });
+
+            }
+
+
+
+            const toggleFormBtn = document.getElementById('toggle-create-form-btn');
+
+            const createForm = document.getElementById('create-assignment-form');
+
+            // Attach event listener to the form's submit event
+
+            createForm.addEventListener('submit', handleCreateAssignment);
+
+            toggleFormBtn.addEventListener('click', () => {
+
+                const isVisible = createForm.style.display !== 'none';
+
+                createForm.style.display = isVisible ? 'none' : 'flex';
+
+                toggleFormBtn.textContent = isVisible ? 'Create Assignment' : 'Hide Form';
+
+            });
+
+
+
+            const downloadBtn = document.getElementById('download-plagiarism-report-btn');
+
+            if (downloadBtn) {
+
+                downloadBtn.addEventListener('click', downloadReport);
+
+            }
+
+
+
+            fetchTeacherAssignments();
+
+        }
+
+
+
+        async function fetchTeacherAssignments() {
+
+            setLoading(true);
+
+            hideMessage('teacher-message');
+
+            const assignmentsListEl = document.getElementById('assignments-list');
+
+            assignmentsListEl.innerHTML = '<p class="info-text">Loading assignments...</p>';
+
+
+
+            try {
+
+                const response = await fetch(`${API_BASE_URL}/assignments/${currentUser.userId}`);
+
+                const assignments = await response.json();
+
+
+
+                if (response.ok) {
+
+                    if (assignments.length === 0) {
+
+                        assignmentsListEl.innerHTML = '<p class="info-text">No assignments created yet.</p>';
+
+                    } else {
+
+                        assignmentsListEl.innerHTML = '';
+
+                        assignments.forEach(assignment => {
+
+                            const assignmentCard = document.createElement('div');
+
+                            assignmentCard.className = 'assignment-card';
+
+                            assignmentCard.dataset.assignmentId = assignment._id;
+
+                            const branchesText = Array.isArray(assignment.branches) ? assignment.branches.join(', ') : 'N/A';
+
+                            assignmentCard.innerHTML = `
+
+                                <h3 class="assignment-name">${assignment.name}</h3>
+
+                                <p class="assignment-description">${assignment.description || ''}</p>
+
+                                <p class="assignment-meta">Branches: ${branchesText}</p>
+
+                                <p class="assignment-meta">Deadline: ${new Date(assignment.deadline).toLocaleString()}</p>
+
+                                <p class="assignment-meta">Total Students: ${assignment.totalStudents || 'N/A'}</p>
+
+                                <button class="delete-btn" data-assignment-id="${assignment._id}">×</button>
+
+                            `;
+
+                            assignmentCard.addEventListener('click', (e) => {
+
+                                if (e.target.classList.contains('delete-btn')) {
+
+                                    handleDeleteAssignment(e.target.dataset.assignmentId);
+
+                                } else {
+
+                                    selectAssignmentForTeacher(assignment);
+
+                                }
+
+                            });
+
+                            assignmentsListEl.appendChild(assignmentCard);
+
+                        });
+
+                    }
+
+                } else {
+
+                    showMessage('teacher-message', `Error fetching assignments: ${assignments.error || 'Unknown error'}`, true);
+
+                    assignmentsListEl.innerHTML = '<p class="info-text">Error loading assignments.</p>';
+
+                }
+
+            } catch (error) {
+
+                showMessage('teacher-message', "Error connecting to backend to fetch assignments.", true);
+
+                assignmentsListEl.innerHTML = '<p class="info-text">Error loading assignments.</p>';
+
+            } finally {
+
+                setLoading(false);
+
+            }
+
+        }
+
+
+
+        async function handleCreateAssignment(event) {
+
+            event.preventDefault();
+
+            hideMessage('teacher-message');
+
+            setLoading(true);
+
+
+
+            const name = document.getElementById('new-assignment-name').value;
+
+            const description = document.getElementById('new-assignment-description').value;
+
+            const deadline = document.getElementById('new-assignment-deadline').value;
+
+            const selectedBranches = Array.from(document.querySelectorAll('input[name="assignment-branch"]:checked')).map(cb => cb.value);
+
+            const totalStudents = document.getElementById('total-students').value;
+
+
+
+            if (selectedBranches.length === 0) {
+
+                showMessage('teacher-message', "Please select at least one branch for the assignment.", true);
+
+                setLoading(false);
+
+                return;
+
+            }
+
+            if (!totalStudents || parseInt(totalStudents) <= 0) {
+
+                showMessage('teacher-message', "Please enter a valid number of students.", true);
+
+                setLoading(false);
+
+                return;
+
+            }
+
+
+
+            try {
+
+                const response = await fetch(`${API_BASE_URL}/assignments`, {
+
+                    method: 'POST',
+
+                    headers: { 'Content-Type': 'application/json' },
+
+                    body: JSON.stringify({
+
+                        userId: currentUser.userId,
+
+                        name: name,
+
+                        description: description,
+
+                        deadline: deadline,
+
+                        branches: selectedBranches,
+
+                        totalStudents: totalStudents
+
+                    })
+
+                });
+
+                const data = await response.json();
+
+
+
+                if (response.ok) {
+
+                    showMessage('teacher-message', 'Assignment created successfully!', false);
+
+                    document.getElementById('new-assignment-name').value = '';
+
+                    document.getElementById('new-assignment-description').value = '';
+
+                    document.getElementById('new-assignment-deadline').value = '';
+
+                    document.getElementById('total-students').value = '';
+
+                    document.querySelectorAll('input[name="assignment-branch"]').forEach(cb => cb.checked = false);
+
+                    document.getElementById('create-assignment-form').style.display = 'none';
+
+                    document.getElementById('toggle-create-form-btn').textContent = 'Create Assignment';
+
+                    fetchTeacherAssignments();
+
+                } else {
+
+                    showMessage('teacher-message', `Error creating assignment: ${data.error || 'Unknown error'}`, true);
+
+                }
+
+            } catch (error) {
+
+                showMessage('teacher-message', "Error connecting to backend to create assignment.", true);
+
+            } finally {
+
+                setLoading(false);
+
+            }
+
+        }
+
+
+
+        async function handleDeleteAssignment(assignmentId) {
+
+            // Using a custom message box instead of confirm()
+
+            const userConfirmed = await new Promise(resolve => {
+
+                const modal = document.getElementById('submission-modal'); // Re-using for simplicity
+
+                const modalTitle = document.getElementById('modal-title');
+
+                const modalContent = document.getElementById('full-submission-content');
+
+                const downloadBtn = document.getElementById('download-submission-btn');
+
+                const closeModalBtn = document.getElementById('close-modal-btn');
+
+
+
+                modalTitle.textContent = "Confirm Deletion";
+
+                modalContent.textContent = "Are you sure you want to delete this assignment and all its submissions?";
+
+                downloadBtn.textContent = "Confirm";
+
+                downloadBtn.style.backgroundColor = '#ef4444'; // Red for delete
+
+                downloadBtn.onclick = () => {
+
+                    modal.style.display = 'none';
+
+                    resolve(true);
+
+                };
+
+                closeModalBtn.onclick = () => {
+
+                    modal.style.display = 'none';
+
+                    resolve(false);
+
+                };
+
+                modal.style.display = 'flex';
+
+            });
+
+
+
+            if (!userConfirmed) {
+
+                return;
+
+            }
+
+
+
+            hideMessage('teacher-message');
+
+            setLoading(true);
+
+
+
+            try {
+
+                const response = await fetch(`${API_BASE_URL}/assignments/${assignmentId}`, {
+
+                    method: 'DELETE',
+
+                    headers: { 'Content-Type': 'application/json' },
+
+                    body: JSON.stringify({ teacherId: currentUser.userId })
+
+                });
+
+                const data = await response.json();
+
+
+
+                if (response.ok) {
+
+                    showMessage('teacher-message', 'Assignment and submissions deleted successfully!', false);
+
+                    fetchTeacherAssignments();
+
+                    const detailsCard = document.getElementById('selected-assignment-details');
+
+                    if (detailsCard.dataset.assignmentId === assignmentId) {
+
+                        detailsCard.style.display = 'none';
+
+                    }
+
+                } else {
+
+                    showMessage('teacher-message', `Error deleting assignment: ${data.error || 'Unknown error'}`, true);
+
+                }
+
+            } catch (error) {
+
+                showMessage('teacher-message', "Error connecting to backend to delete assignment.", true);
+
+            } finally {
+
+                setLoading(false);
+
+            }
+
+        }
+
+
+
+        async function selectAssignmentForTeacher(assignment) {
+
+            const detailsCard = document.getElementById('selected-assignment-details');
+
+            detailsCard.dataset.assignmentId = assignment._id;
+
+            const titleEl = document.getElementById('selected-assignment-title');
+
+            const submissionsSummaryEl = document.getElementById('submissions-summary');
+
+            const submissionsListEl = document.getElementById('submissions-list');
+
+            const submissionsListHeaderEl = document.getElementById('submissions-list-header');
+
+            const plagiarismReportCard = document.getElementById('plagiarism-report-card');
+
+            const downloadBtn = document.getElementById('download-plagiarism-report-btn');
+
+
+
+            // Highlight selected assignment card visually
+
+            document.querySelectorAll('.assignment-card').forEach(c => c.classList.remove('assignment-card-selected'));
+
+            const selectedCard = document.querySelector(`[data-assignment-id="${assignment._id}"]`);
+
+            if (selectedCard) selectedCard.classList.add('assignment-card-selected');
+
+
+
+            titleEl.textContent = `Submissions for "${assignment.name}"`;
+
+            detailsCard.style.display = 'block';
+
+            plagiarismReportCard.style.display = 'none';
+
+            downloadBtn.style.display = 'none';
+
+
+
+            setLoading(true);
+
+            submissionsSummaryEl.textContent = 'Loading submissions...';
+
+            submissionsListEl.innerHTML = '<p class="info-text">Loading submissions...</p>';
+
+            submissionsListHeaderEl.style.display = 'none';
+
+            try {
+
+                const response = await fetch(`${API_BASE_URL}/submissions/${assignment._id}`);
+
+                const data = await response.json();
+
+
+
+                if (response.ok) {
+
+                    const submissions = data.submissions || [];
+
+                    const totalStudents = assignment.totalStudents || 'N/A';
+
+                    const submittedCount = submissions.length;
+
+
+
+                    const submittedRollNumbers = submissions.map(s => s.rollNo || 'N/A').join(', ');
+
+                    submissionsSummaryEl.innerHTML = `
+
+                        Submitted: ${submittedCount} / ${totalStudents} students
+
+                        <br>
+
+                        Submitted Roll Numbers: ${submittedRollNumbers || 'None'}
+
+                    `;
+
+
+
+                    if (submissions.length === 0) {
+
+                        submissionsListEl.innerHTML = '<p class="info-text">No submissions for this assignment yet.</p>';
+
+                        submissionsListHeaderEl.style.display = 'none';
+
+                    } else {
+
+                        submissionsListEl.innerHTML = '';
+
+                        // Adjust grid columns for photo
+
+                        submissionsListHeaderEl.style.gridTemplateColumns = '0.6fr 2fr 1fr 1fr 2fr';
+
+                        submissionsListHeaderEl.style.display = 'grid';
+
+
+
+                        for (const submission of submissions) {
+
+                            const submissionItem = document.createElement('div');
+
+                            submissionItem.className = 'submission-item';
+
+                            // Adjust grid columns for photo
+
+                            submissionItem.style.gridTemplateColumns = '0.6fr 2fr 1fr 1fr 2fr';
+
+
+
+                            const studentName = submission.name || 'N/A';
+
+                            const studentRollNo = submission.rollNo || 'N/A';
+
+
+
+                            // Fetch student photo
+
+                            let studentPhotoHtml = `<img src="https://placehold.co/56x56/cccccc/000000?text=No+Photo" alt="Student Photo" class="student-photo">`;
+
+                            if (submission.studentId) {
+
+                                try {
+
+                                    const userResponse = await fetch(`${API_BASE_URL}/user/${submission.studentId}`);
+
+                                    const userData = await userResponse.json();
+
+                                    if (userResponse.ok && userData.photo) {
+
+                                        studentPhotoHtml = `<img src="${userData.photo}" alt="Student Photo" class="student-photo">`;
+
+                                    }
+
+                                } catch (error) {
+
+                                    console.error("Error fetching student photo:", error);
+
+                                }
+
+                            }
+
+
+
+                            submissionItem.innerHTML = `
+
+                                <div class="submission-grid-item">${studentPhotoHtml}</div>
+
+                                <div class="submission-grid-item">${studentName}</div>
+
+                                <div class="submission-grid-item">${studentRollNo}</div>
+
+                                <div class="submission-grid-item">${new Date(submission.submissionDate).toLocaleString()}</div>
+
+                                <div class="submission-grid-item submission-actions">
+
+                                    <button class="btn-primary submission-action-btn" onclick="viewFullSubmission('${encodeURIComponent(submission.content)}')">View</button>
+
+                                    <button class="btn-check-plagiarism submission-action-btn" data-submission-id="${submission._id}" data-submission-content="${encodeURIComponent(submission.content)}">Plagiarism Check</button>
+
+                                </div>
+
+                            `;
+
+                            const checkBtn = submissionItem.querySelector('.btn-check-plagiarism');
+
+                            if (checkBtn) {
+
+                                checkBtn.addEventListener('click', (e) => handleCheckPlagiarism(e, submission));
+
+                            }
+
+                            submissionsListEl.appendChild(submissionItem);
+
+                        }
+
+                    }
+
+                } else {
+
+                    submissionsSummaryEl.textContent = `Error loading submissions: ${data.error || 'Unknown error'}`;
+
+                    submissionsListEl.innerHTML = '<p class="info-text">Error loading submissions.</p>';
+
+                    submissionsListHeaderEl.style.display = 'none';
+
+                }
+
+            } catch (error) {
+
+                submissionsSummaryEl.textContent = 'Error connecting to backend to fetch submissions.';
+
+                submissionsListEl.innerHTML = '<p class="info-text">Error connecting to backend to fetch submissions.</p>';
+
+                submissionsListHeaderEl.style.display = 'none';
+
+            } finally {
+
+                setLoading(false);
+
+            }
+
+        }
+
+
+
+        async function renderStudentDashboard() {
+
+            console.log("renderStudentDashboard called."); // Debug log
+
+            document.getElementById('app-root').innerHTML = `
+
+                <div id="student-dashboard" class="app-container app-section">
+
+                    <div class="dashboard-header">
+
+                        <h1 class="dashboard-title">Student Dashboard</h1>
+
+                        <button id="student-logout-btn" class="btn-logout">Logout</button>
+
+                    </div>
+
+
+
+                    <p id="student-message" class="message" style="display:none;"></p>
+
+
+
+                   <div class="card">
+
+                        <h2 class="card-title">Available Assignments</h2>
+
+                        <p class="info-text">Your Branch: <span id="student-branch">Loading...</span></p>
+
+                        <div id="available-assignments-list" class="assignments-grid">
+
+                            <p class="info-text">Loading assignments...</p>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div id="submit-assignment-card" class="card" style="display:none;">
+
+                        <h2 id="submit-assignment-title" class="card-title"></h2>
+
+                        <form id="submit-assignment-form" class="form-layout">
+
+                            <div class="form-group">
+
+                                <label class="form-label" for="submission-name">Name</label>
+
+                                <input type="text" id="submission-name" class="input-field" required>
+
+                            </div>
+
+                            <div class="form-group">
+
+                                <label class="form-label" for="submission-rollno">Roll Number</label>
+
+                                <input type="text" id="submission-rollno" class="input-field" required>
+
+                            </div>
+
+                            <div class="form-group">
+
+                                <label class="form-label">Submission Method</label>
+
+                                <div class="radio-group">
+
+                                    <label class="radio-label">
+
+                                        <input type="radio" name="submission-method" value="file" checked>
+
+                                        <span class="radio-text">Upload File</span>
+
+                                    </label>
+
+                                    <label class="radio-label">
+
+                                        <input type="radio" name="submission-method" value="paste">
+
+                                        <span class="radio-text">Paste Content</span>
+
+                                    </label>
+
+                                </div>
+
+                            </div>
+
+                            <div id="file-upload-container" class="form-group">
+
+                                <label class="form-label" for="submission-file">Upload File (.txt, .pdf, .docx)</label>
+
+                                <input type="file" id="submission-file" class="input-field" accept=".txt,.pdf,.docx" required>
+
+                            </div>
+
+                            <div id="paste-content-container" class="form-group" style="display:none;">
+
+                                <label class="form-label" for="submission-content">Paste Content</label>
+
+                                <textarea id="submission-content" class="input-field textarea-field" placeholder="Paste your assignment text here..."></textarea>
+
+                            </div>
+
+                            <button type="submit" id="submit-assignment-btn" class="btn-primary">Submit Assignment</button>
+
+                        </form>
+
+                    </div>
+
+
+
+                    <div class="card">
+
+                        <h2 class="card-title">Your Submissions</h2>
+
+                        <div id="student-submissions-list" class="submissions-list">
+
+                            <p class="info-info-text">Loading your submissions...</p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+            showSection('student-dashboard');
+
+
+
+            document.getElementById('student-logout-btn').addEventListener('click', handleLogout);
+
+
+
+            const submissionMethodRadios = document.querySelectorAll('input[name="submission-method"]');
+
+            submissionMethodRadios.forEach(radio => {
+
+                radio.addEventListener('change', () => {
+
+                    const isFile = radio.value === 'file';
+
+                    document.getElementById('file-upload-container').style.display = isFile ? 'block' : 'none';
+
+                    document.getElementById('paste-content-container').style.display = isFile ? 'none' : 'block';
+
+                    document.getElementById('submission-file').required = isFile;
+
+                    document.getElementById('submission-content').required = !isFile;
+
+                });
+
+            });
+
+
+
+            fetchStudentAssignmentsAndSubmissions();
+
+        }
+
+
+
+        async function fetchStudentAssignmentsAndSubmissions() {
+
+            setLoading(true);
+
+            hideMessage('student-message');
+
+            const availableAssignmentsListEl = document.getElementById('available-assignments-list');
+
+            const studentSubmissionsListEl = document.getElementById('student-submissions-list');
+
+            const studentBranchEl = document.getElementById('student-branch');
+
+
+
+            availableAssignmentsListEl.innerHTML = '<p class="info-text">Loading assignments...</p>';
+
+            studentSubmissionsListEl.innerHTML = '<p class="info-info-text">Loading your submissions...</p>';
+
+            studentBranchEl.textContent = 'Loading...';
+
+
+
+            try {
+
+                const userResponse = await fetch(`${API_BASE_URL}/user/${currentUser.userId}`);
+
+                const userData = await userResponse.json();
+
+
+
+                if (!userResponse.ok) {
+
+                    throw new Error(userData.error || 'Failed to fetch user details.');
+
+                }
+
+                const studentBranch = userData.branch;
+
+                studentBranchEl.textContent = studentBranch;
+
+
+
+                const assignmentsResponse = await fetch(`${API_BASE_URL}/assignments/${currentUser.userId}`);
+
+                const allAssignments = await assignmentsResponse.json();
+
+
+
+                if (!assignmentsResponse.ok) {
+
+                     throw new Error(allAssignments.error || 'Failed to fetch assignments.');
+
+                }
+
+                const availableAssignments = allAssignments.filter(assign => new Date(assign.deadline) > new Date());
+
+
+
+                const submissionsResponse = await fetch(`${API_BASE_URL}/submissions/student/${currentUser.userId}`);
+
+                const submittedAssignments = await submissionsResponse.json();
+
+
+
+                if (!submissionsResponse.ok) {
+
+                    throw new Error(submittedAssignments.error || 'Failed to fetch submissions.');
+
+                }
+
+
+
+                renderAvailableAssignments(availableAssignments, submittedAssignments);
+
+                renderStudentSubmissions(submittedAssignments);
+
+
+
+            } catch (error) {
+
+                showMessage('student-message', `Error connecting to backend to fetch data: ${error.message}`, true);
+
+                availableAssignmentsListEl.innerHTML = '<p class="info-text">Error loading available assignments.</p>';
+
+                studentSubmissionsListEl.innerHTML = '<p class="info-text">Error loading your submissions.</p>';
+
+                studentBranchEl.textContent = 'Error';
+
+            } finally {
+
+                setLoading(false);
+
+            }
+
+        }
+
+
+
+        function renderAvailableAssignments(assignments, submittedData) {
+
+            const availableAssignmentsListEl = document.getElementById('available-assignments-list');
+
+            availableAssignmentsListEl.innerHTML = '';
+
+
+
+            if (assignments.length === 0) {
+
+                availableAssignmentsListEl.innerHTML = '<p class="info-text">No assignments available for your branch at the moment.</p>';
+
+                return;
+
+            }
+
+
+
+            assignments.forEach(assignment => {
+
+                const hasSubmitted = submittedData.some(s => s.assignmentId === assignment._id);
+
+                const deadlinePassed = new Date(assignment.deadline) < new Date();
+
+
+
+                const assignmentCard = document.createElement('div');
+
+                let cardClass = 'assignment-card';
+
+                if (deadlinePassed) cardClass += ' assignment-card-disabled';
+
+                if (hasSubmitted) cardClass += ' assignment-card-submitted';
+
+                assignmentCard.className = cardClass;
+
+
+
+                const branchesText = Array.isArray(assignment.branches) ? assignment.branches.join(', ') : 'N/A';
+
+
+
+                assignmentCard.innerHTML = `
+
+                    <h3 class="assignment-name">${assignment.name}</h3>
+
+                    <p class="assignment-description">${assignment.description || ''}</p>
+
+                    <p class="assignment-meta">Branches: ${branchesText}</p>
+
+                    <p class="assignment-meta">Deadline: ${new Date(assignment.deadline).toLocaleString()}</p>
+
+                    <p class="assignment-meta">Created: ${new Date(assignment.createdAt).toLocaleString()}</p>
+
+                    ${deadlinePassed ? '<p class="status-text status-text-error">Deadline Passed!</p>' : ''}
+
+                    ${hasSubmitted ? '<p class="status-text status-text-success">Submitted!</p>' : ''}
+
+                `;
+
+
+
+                if (!deadlinePassed && !hasSubmitted) {
+
+                    assignmentCard.style.cursor = 'pointer';
+
+                    assignmentCard.addEventListener('click', () => selectAssignmentForStudent(assignment));
+
+                } else {
+
+                    assignmentCard.style.cursor = 'not-allowed';
+
+                }
+
+                availableAssignmentsListEl.appendChild(assignmentCard);
+
+            });
+
+        }
+
+
+
+        function renderStudentSubmissions(submissions) {
+
+            const studentSubmissionsListEl = document.getElementById('student-submissions-list');
+
+            studentSubmissionsListEl.innerHTML = '';
+
+
+
+            if (submissions.length === 0) {
+
+                studentSubmissionsListEl.innerHTML = '<p class="info-info-text">You haven\'t submitted any assignments yet.</p>';
+
+                return;
+
+            }
+
+
+
+            submissions.forEach(submission => {
+
+                const submissionItem = document.createElement('div');
+
+                submissionItem.className = 'submission-item submission-item-submitted';
+
+                const studentName = submission.name || 'N/A';
+
+                const studentRollNo = submission.rollNo || 'N/A';
+
+                submissionItem.innerHTML = `
+
+                    <p class="submission-meta">Student: ${studentName} (${studentRollNo})</p>
+
+                    <p class="submission-meta">Submitted: ${new Date(submission.submissionDate).toLocaleString()}</p>
+
+                    <div class="submission-content-preview">
+
+                        <h4 class="preview-title">Content Preview:</h4>
+
+                        <p>${submission.content.substring(0, 150)}...</p>
+
+                    </div>
+
+                `;
+
+                studentSubmissionsListEl.appendChild(submissionItem);
+
+            });
+
+        }
+
+
+
+        let selectedAssignmentToSubmit = null;
+
+
+
+        function selectAssignmentForStudent(assignment) {
+
+            selectedAssignmentToSubmit = assignment;
+
+            const submitCard = document.getElementById('submit-assignment-card');
+
+            const submitTitle = document.getElementById('submit-assignment-title');
+
+            const submitBtn = document.getElementById('submit-assignment-btn');
+
+
+
+            submitTitle.textContent = `Submit for "${assignment.name}"`;
+
+            document.getElementById('submission-file').value = null;
+
+            document.getElementById('submission-content').value = '';
+
+            document.getElementById('submission-name').value = '';
+
+            document.getElementById('submission-rollno').value = '';
+
+            submitCard.style.display = 'block';
+
+
+
+            if (new Date(assignment.deadline) < new Date()) {
+
+                submitBtn.disabled = true;
+
+                submitBtn.textContent = 'Deadline Passed';
+
+            } else {
+
+                submitBtn.disabled = false;
+
+                submitBtn.textContent = 'Submit Assignment';
+
+            }
+
+
+
+            const submitForm = document.getElementById('submit-assignment-form');
+
+            submitForm.removeEventListener('submit', handleSubmitAssignment);
+
+            submitForm.addEventListener('submit', handleSubmitAssignment);
+
+        }
+
+
+
+        async function handleSubmitAssignment(event) {
+
+            event.preventDefault();
+
+            hideMessage('student-message');
+
+            setLoading(true);
+
+
+
+            const submissionName = document.getElementById('submission-name').value;
+
+            const submissionRollNo = document.getElementById('submission-rollno').value;
+
+
+
+            if (!submissionName || !submissionRollNo) {
+
+                showMessage('student-message', "Please enter your name and roll number.", true);
+
+                setLoading(false);
+
+                return;
+
+            }
+
+
+
+            const method = document.querySelector('input[name="submission-method"]:checked')?.value;
+
+
+
+            if (method === 'file') {
+
+                const fileInput = document.getElementById('submission-file');
+
+                const file = fileInput.files[0];
+
+                if (!file) {
+
+                    showMessage('student-message', "Please upload a file.", true);
+
+                    setLoading(false);
+
+                    return;
+
+                }
+
+
+
+                const formData = new FormData();
+
+                formData.append('file', file);
+
+                formData.append('studentId', currentUser.userId);
+
+                formData.append('assignmentId', selectedAssignmentToSubmit._id);
+
+                formData.append('name', submissionName);
+
+                formData.append('rollNo', submissionRollNo);
+
+
+
+                try {
+
+                    const response = await fetch(`${API_BASE_URL}/submissions`, {
+
+                        method: 'POST',
+
+                        body: formData
+
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+
+                        showMessage('student-message', 'Assignment submitted successfully!', false);
+
+                        document.getElementById('submission-file').value = null;
+
+                        document.getElementById('submit-assignment-card').style.display = 'none';
+
+                        selectedAssignmentToSubmit = null;
+
+                        fetchStudentAssignmentsAndSubmissions();
+
+                    } else {
+
+                        showMessage('student-message', `Error submitting assignment: ${data.error || 'Unknown error'}`, true);
+
+                    }
+
+                } catch (error) {
+
+                    showMessage('student-message', "Error connecting to backend to submit assignment.", true);
+
+                } finally {
+
+                    setLoading(false);
+
+                }
+
+            } else if (method === 'paste') {
+
+                const submissionContent = document.getElementById('submission-content').value;
+
+                if (!submissionContent.trim()) {
+
+                    showMessage('student-message', "Please paste content for your submission.", true);
+
+                    setLoading(false);
+
+                    return;
+
+                }
+
+
+
+                const payload = {
+
+                    studentId: currentUser.userId,
+
+                    assignmentId: selectedAssignmentToSubmit._id,
+
+                    content: submissionContent,
+
+                    name: submissionName,
+
+                    rollNo: submissionRollNo
+
+                };
+
+
+
+                try {
+
+                    const response = await fetch(`${API_BASE_URL}/submissions`, {
+
+                        method: 'POST',
+
+                        headers: { 'Content-Type': 'application/json' },
+
+                        body: JSON.stringify(payload)
+
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+
+                        showMessage('student-message', 'Assignment submitted successfully!', false);
+
+                        document.getElementById('submission-content').value = '';
+
+                        document.getElementById('submit-assignment-card').style.display = 'none';
+
+                        selectedAssignmentToSubmit = null;
+
+                        fetchStudentAssignmentsAndSubmissions();
+
+                    } else {
+
+                        showMessage('student-message', `Error submitting assignment: ${data.error || 'Unknown error'}`, true);
+
+                    }
+
+                } catch (error) {
+
+                    showMessage('student-message', "Error connecting to backend to submit assignment.", true);
+
+                } finally {
+
+                    setLoading(false);
+
+                }
+
+            }
+
+        }
+
+
+
+        function renderWaitScreen() {
+
+            console.log("renderWaitScreen called."); // Debug log
+
+            document.getElementById('app-root').innerHTML = `
+
+                <div class="welcome-screen app-section" id="wait-screen">
+
+                    <h2 class="welcome-title">Connecting to Backend...</h2>
+
+                    <p class="welcome-message">Please ensure your Python Flask backend is running on <br><code>${API_BASE_URL}</code><br> and try refreshing the page.</p>
+
+                </div>
+
+            `;
+
+            showSection('wait-screen');
+
+            setLoading(false);
+
+        }
+
+
+
+        function renderApp() {
+
+            console.log("renderApp called."); // Debug log
+
+            clearAllIntervals();
+
+            setLoading(true);
+
+            const storedUser = localStorage.getItem('currentUser');
+
+            if (storedUser) {
+
+                try {
+
+                    currentUser = JSON.parse(storedUser);
+
+                    console.log("currentUser from localStorage:", currentUser); // Debug log
+
+                } catch (e) {
+
+                    console.error("Error parsing stored user from localStorage:", e);
+
+                    removeUserFromLocalStorage();
+
+                }
+
+            }
+
+
+
+            if (!currentUser) {
+
+                console.log("No current user, rendering auth page."); // Debug log
+
+                renderAuth();
+
+            } else if (currentUser.userRole === 'teacher') {
+
+                console.log("User is teacher, rendering teacher dashboard."); // Debug log
+
+                renderTeacherDashboard();
+
+            } else if (currentUser.userRole === 'student') {
+
+                console.log("User is student, rendering student dashboard."); // Debug log
+
+                renderStudentDashboard();
+
+            } else {
+
+                console.log("User role undefined, showing welcome screen with logout."); // Debug log
+
+                document.getElementById('app-root').innerHTML = `
+
+                    <div class="welcome-screen app-section">
+
+                        <h2 class="welcome-title">Welcome!</h2>
+
+                        <p class="welcome-message">Your account is active, but your role is not defined. Please contact support.</p>
+
+                        <button id="welcome-logout-btn" class="btn-logout">Logout</button>
+
+                    </div>
+
+                `;
+
+                document.getElementById('welcome-logout-btn').addEventListener('click', handleLogout);
+
+                showSection('welcome-screen');
+
+            }
+
+            setLoading(false);
+
+        }
+
+
+
+        // --- Event Listeners and Initial App Load ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+            console.log("DOMContentLoaded event fired."); // Debug log
+
+            const modal = document.getElementById('submission-modal');
+
+            const closeModalBtn = document.getElementById('close-modal-btn');
+
+
+
+            if (closeModalBtn) {
+
+                closeModalBtn.onclick = () => {
+
+                    modal.style.display = 'none';
+
+                };
+
+            }
+
+            window.onclick = (event) => {
+
+                if (event.target === modal) {
+
+                    modal.style.display = 'none';
+
+                }
+
+            };
+
+
+
+            const downloadReportBtn = document.getElementById('download-plagiarism-report-btn');
+
+            if (downloadReportBtn) {
+
+                downloadReportBtn.addEventListener('click', downloadReport);
+
+            }
+
+
+
+            // Initial render of the app
+
+            renderApp();
+
+
+
+            // Add loading screen div to body
+
+            const loadingDiv = document.createElement('div');
+
+            loadingDiv.id = 'loading-screen';
+
+            loadingDiv.className = 'loading-screen';
+
+            loadingDiv.style.display = 'none';
+
+            loadingDiv.innerHTML = `
+
+                <div style="display:flex;flex-direction:column;align-items:center;">
+
+                    <div class="spinner"></div>
+
+                    <p class="loading-text" style="color:#5b21b6;font-weight:700;">Loading...</p>
+
+                </div>
+
+            `;
+
+            document.body.appendChild(loadingDiv);
+
+        });
+
+    </script>
+
+</body>
+
+</html>

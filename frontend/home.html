@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IntelliCheck - Smart Plagiarism Detection for Educators</title>
+    <style>
+        :root{
+            /* Pastel / Vibrant palette (purple + pink accents) */
+            --accent-900: #3b1053;
+            --accent-800: #5b2a86;
+            --accent-700: #7b36b2;
+            --accent-600: #9b5de8;
+            --accent-500: #b38bfd;
+            --accent-400: #cdb8ff;
+            --accent-300: #e9e0ff;
+            --muted-900: #0f1724;
+            --muted-700: #3b3b48;
+            --muted-500: #6b6b77;
+            --bg-start: #fff6ff;
+            --bg-end: #f3f6ff;
+            --card-bg: rgba(255,255,255,0.92);
+            --glass: rgba(255,255,255,0.6);
+            --radius-lg: 18px;
+            --radius-md: 12px;
+            --transition: 220ms cubic-bezier(.2,.9,.25,1);
+            --border-soft: rgba(155,93,232,0.12);
+            --glow: 0 18px 50px rgba(155,93,232,0.12);
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        html,body{ height:100%; }
+
+        body{
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            line-height:1.6;
+            color:var(--muted-900);
+            background: linear-gradient(180deg, var(--bg-start) 0%, var(--bg-end) 60%);
+            -webkit-font-smoothing:antialiased;
+            -moz-osx-font-smoothing:grayscale;
+            overflow-x: hidden;
+            padding-bottom:4rem;
+        }
+
+        /* decorative pastel blobs */
+        .decor-blobs{ position:absolute; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+        .blob{ position:absolute; filter: blur(48px); opacity:0.14; transform: translateZ(0); }
+        .blob.one{
+            width:520px; height:520px;
+            background: radial-gradient(circle at 25% 30%, var(--accent-500), transparent 45%);
+            top:-120px; left:-80px;
+            transform: rotate(12deg);
+        }
+        .blob.two{
+            width:520px; height:520px;
+            background: radial-gradient(circle at 70% 70%, #ffd6ec, transparent 35%);
+            bottom:-140px; right:-80px;
+            transform: rotate(-8deg);
+        }
+
+        .header{
+            background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.85));
+            backdrop-filter: blur(6px) saturate(120%);
+            padding: 1rem 2rem;
+            box-shadow: 0 6px 30px rgba(59,24,82,0.06);
+            position: sticky;
+            top:0;
+            z-index:110;
+            border-bottom: 1px solid rgba(155,93,232,0.06);
+        }
+
+        .nav{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            max-width:1200px;
+            margin:0 auto;
+        }
+
+        .logo{
+            display:flex; gap:0.6rem; align-items:center; font-size:1.4rem; font-weight:800;
+        }
+
+        .logo .mark{
+            width:42px; height:42px; border-radius:10px; display:inline-grid; place-items:center;
+            background: linear-gradient(135deg,var(--accent-700),var(--accent-500)); color:#fff;
+            box-shadow: 0 8px 24px rgba(155,93,232,0.18);
+            font-size:18px;
+        }
+
+        .nav-links{
+            display:flex;
+            gap:1.2rem;
+            list-style:none;
+            align-items:center;
+        }
+
+        .nav-links a{
+            color:var(--muted-700);
+            text-decoration:none;
+            transition: color var(--transition), background var(--transition);
+            font-weight:600;
+            padding:0.45rem 0.65rem;
+            border-radius:10px;
+        }
+
+        .nav-links a:hover{
+            color:var(--accent-700);
+            background: rgba(155,93,232,0.06);
+        }
+
+        .btn-nav{
+            background: linear-gradient(135deg,var(--accent-700),var(--accent-500));
+            color:#fff;
+            padding:0.55rem 1.1rem;
+            border-radius:12px;
+            text-decoration:none;
+            transition: transform var(--transition), box-shadow var(--transition);
+            font-weight:700;
+            box-shadow: var(--glow);
+            border: none;
+        }
+
+        .btn-nav:hover{ transform: translateY(-3px) scale(1.02); }
+
+        .hero{
+            background: linear-gradient(135deg, var(--accent-700) 0%, var(--accent-500) 100%);
+            color:#fff;
+            padding:5.5rem 1.25rem 3.5rem;
+            text-align:center;
+            position:relative;
+            overflow:hidden;
+            border-bottom-left-radius:var(--radius-lg);
+            border-bottom-right-radius:var(--radius-lg);
+            box-shadow: 0 16px 60px rgba(59,24,82,0.12);
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-content{ max-width:980px; margin:0 auto; position:relative; z-index:2; }
+
+        .hero h1{
+            font-size:2.8rem;
+            margin-bottom:0.45rem;
+            font-weight:900;
+            letter-spacing:-0.02em;
+            line-height:1.03;
+        }
+
+        .hero-subtitle{ font-size:1.05rem; margin-bottom:0.6rem; opacity:0.98; font-weight:700; }
+
+        .hero-description{
+            font-size:1.02rem;
+            margin: 0 auto 1rem;
+            line-height:1.65;
+            max-width:880px;
+            color: rgba(255,255,255,0.95);
+        }
+
+        .cta-button{
+            display:inline-block;
+            background:#fff;
+            color:var(--accent-700);
+            padding:0.9rem 1.9rem;
+            border-radius:12px;
+            text-decoration:none;
+            font-size:1.02rem;
+            font-weight:800;
+            transition: transform var(--transition), box-shadow var(--transition);
+            box-shadow: 0 12px 40px rgba(155,93,232,0.12);
+            border: none;
+        }
+
+        .cta-button:hover{ transform: translateY(-6px) scale(1.02); background:#fff6ff; }
+
+        /* features */
+        .features-section{ padding:3.6rem 1.25rem; max-width:1200px; margin:0 auto; position:relative; z-index:2; }
+
+        .section-title{ text-align:center; font-size:2rem; margin-bottom:0.25rem; color:var(--muted-900); }
+        .section-subtitle{ text-align:center; font-size:1.0rem; color:var(--muted-500); margin-bottom:1.6rem; }
+
+        .features-grid{
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap:1rem;
+        }
+
+        .feature-card{
+            padding:1.4rem;
+            background: var(--card-bg);
+            border-radius:14px;
+            box-shadow: 0 10px 30px rgba(59,24,82,0.05);
+            transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+            border: 1px solid rgba(155,93,232,0.06);
+            min-height:130px;
+            display:flex; flex-direction:column; justify-content:flex-start;
+        }
+
+        .feature-card:hover{ transform: translateY(-8px); box-shadow: 0 26px 60px rgba(59,24,82,0.08); }
+
+        .feature-icon{ font-size:1.9rem; margin-bottom:0.5rem; }
+        .feature-card h3{ color:var(--accent-700); font-size:1.03rem; margin-bottom:0.4rem; }
+        .feature-card p{ color:var(--muted-500); line-height:1.55; font-size:0.97rem; }
+
+        /* how it works */
+        .how-it-works{ background: linear-gradient(180deg, var(--accent-300), #fff8ff); padding:3.6rem 1.25rem; }
+
+        .steps-container{ max-width:1000px; margin:0 auto; display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:0.9rem; }
+
+        .step{ text-align:center; padding:1.2rem; background: var(--card-bg); border-radius:12px; position:relative; box-shadow: 0 8px 24px rgba(59,24,82,0.03); transition: transform var(--transition); }
+        .step:hover{ transform: translateY(-6px); }
+
+        .step-number{ width:44px; height:44px; background: linear-gradient(135deg,var(--accent-700),var(--accent-500)); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; margin: 0 auto 0.8rem; font-size:0.98rem; box-shadow: 0 8px 20px rgba(155,93,232,0.12); }
+        .step h3{ margin-bottom:0.45rem; color:var(--muted-900); font-size:1.0rem; }
+        .step p{ color:var(--muted-500); font-size:0.93rem; }
+
+        /* benefits */
+        .benefits-section{ padding:3.6rem 1.25rem; max-width:1200px; margin:0 auto; }
+        .benefits-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap:0.9rem; margin-top:1rem; }
+
+        .benefit-item{ display:flex; gap:0.9rem; padding:0.9rem; background: linear-gradient(90deg,#fff,#fffafc); border-radius:12px; border-left:6px solid var(--accent-500); box-shadow: 0 8px 26px rgba(59,24,82,0.03); align-items:flex-start; }
+        .benefit-icon{ font-size:1.4rem; flex-shrink:0; }
+        .benefit-text h4{ color:var(--muted-900); margin-bottom:0.25rem; font-size:0.98rem; }
+        .benefit-text p{ color:var(--muted-500); font-size:0.92rem; line-height:1.45; }
+
+        .final-cta{ background: linear-gradient(135deg, var(--accent-700), var(--accent-600)); color:#fff; padding:2.4rem 1.25rem; text-align:center; border-radius:12px; margin:1.8rem auto; max-width:980px; box-shadow: 0 14px 48px rgba(59,24,82,0.12); }
+        .final-cta h2{ font-size:1.45rem; margin-bottom:0.4rem; }
+        .final-cta p{ font-size:0.98rem; margin-bottom:0.8rem; opacity:0.96; }
+
+        .footer{ background: linear-gradient(180deg, var(--accent-900), var(--accent-800)); color:#fff; padding:1.2rem 1rem; text-align:center; font-size:0.95rem; border-radius:10px; max-width:1200px; margin:1.6rem auto 3rem; }
+
+        /* FAQ */
+        .faq-section{ max-width:1000px; margin:2rem auto; padding:1rem; }
+        .faq-title{ text-align:center; font-size:1.15rem; color:var(--muted-900); margin-bottom:0.6rem; }
+        .faq-sub{ text-align:center; color:var(--muted-500); margin-bottom:1.2rem; }
+
+        .faq-list{ display:grid; gap:0.6rem; }
+        .faq-item{ background: var(--card-bg); border-radius:12px; box-shadow: 0 10px 24px rgba(59,24,82,0.03); overflow:hidden; border:1px solid rgba(155,93,232,0.04); }
+        .faq-item summary{ list-style:none; cursor:pointer; padding:0.9rem 1rem; display:flex; align-items:center; justify-content:space-between; font-weight:700; color:var(--muted-900); font-size:0.96rem; }
+        .faq-item summary::-webkit-details-marker{ display:none; }
+        .faq-answer{ padding:0 1rem 0.9rem 1rem; color:var(--muted-500); line-height:1.6; font-size:0.92rem; }
+
+        .chev{ transition: transform var(--transition); }
+        details[open] .chev{ transform: rotate(180deg) translateY(2px); }
+
+        /* accessibility focus */
+        a:focus, button:focus, summary:focus { outline: 3px solid rgba(155,93,232,0.18); outline-offset:3px; border-radius:8px; }
+
+        /* small & responsive */
+        @media (max-width:900px){
+            .hero h1{ font-size:2.2rem; }
+            .hero-subtitle{ font-size:1rem; }
+            .hero-description{ font-size:0.98rem; }
+            .nav-links{ gap:0.9rem; }
+            .features-grid{ gap:0.8rem; }
+        }
+        @media (max-width:520px){
+            .nav{ gap:0.6rem; padding:0 0.6rem; }
+            .logo .mark{ display:inline-grid; }
+            .hero{ padding:3.2rem 0.8rem 2.2rem; border-radius:0; }
+            .features-section{ padding-top:1.6rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="decor-blobs" aria-hidden="true">
+        <div class="blob one"></div>
+        <div class="blob two"></div>
+    </div>
+
+    <header class="header" role="banner">
+        <nav class="nav" role="navigation" aria-label="Main navigation">
+            <div class="logo" aria-hidden="false"><div class="mark">📝</div><div>IntelliCheck</div></div>
+            <ul class="nav-links" role="list">
+                <li><a href="#features" title="Features">Features</a></li>
+                <li><a href="#how-it-works" title="How it works">How It Works</a></li>
+                <li><a href="#benefits" title="Benefits">Benefits</a></li>
+                <!-- CTA links to index.html (place index.html in the same frontend folder) -->
+                <li><a href="index.html" class="btn-nav" title="Open the plagiarism checker">Get Started</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero" role="region" aria-labelledby="hero-heading">
+        <div class="hero-content">
+            <h1 id="hero-heading">IntelliCheck</h1>
+            <p class="hero-subtitle">Powerful, fast and beautiful plagiarism detection for educators</p>
+            <p class="hero-description">
+                IntelliCheck helps teachers maintain academic integrity with fast similarity scans, clear highlighted reports,
+                and batch processing for large classes. Upload student work or paste text — get an easy-to-read report with
+                matched sources and evidence for review.
+            </p>
+            <!-- CTA links to index.html -->
+            <a href="index.html" class="cta-button" aria-label="Start checking assignments">Start Checking Assignments →</a>
+        </div>
+    </section>
+
+    <main>
+        <section id="features" class="features-section" aria-labelledby="features-heading">
+            <h2 id="features-heading" class="section-title">Why Educators Choose IntelliCheck</h2>
+            <p class="section-subtitle">Powerful, teacher-friendly features designed to save time and keep your classroom honest</p>
+
+            <div class="features-grid" role="list">
+                <div class="feature-card" role="listitem">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Highly Accurate Detection</h3>
+                    <p>AI-powered engine compares work against web sources, publications, and prior submissions to catch exact and near matches.</p>
+                </div>
+
+                <div class="feature-card" role="listitem">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Grade Faster</h3>
+                    <p>Comprehensive reports delivered quickly — review multiple assignments and spend more time giving feedback.</p>
+                </div>
+
+                <div class="feature-card" role="listitem">
+                    <div class="feature-icon">📊</div>
+                    <h3>Clear, Detailed Reports</h3>
+                    <p>Color-coded similarity scores, highlighted text, and source references make review transparent and fair.</p>
+                </div>
+
+                <div class="feature-card" role="listitem">
+                    <div class="feature-icon">📚</div>
+                    <h3>Batch Processing</h3>
+                    <p>Upload many student submissions at once — ideal for large classes and fast integrity checks.</p>
+                </div>
+
+                <div class="feature-card" role="listitem">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Privacy First</h3>
+                    <p>Student documents are processed with secure defaults; you control retention and data handling options.</p>
+                </div>
+
+                <div class="feature-card" role="listitem">
+                    <div class="feature-icon">💼</div>
+                    <h3>Multiple File Formats</h3>
+                    <p>Accept DOCX, PDF, and TXT — students can submit in the format they prefer while you keep grading consistent.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="how-it-works" class="how-it-works" aria-labelledby="how-heading">
+            <h2 id="how-heading" class="section-title">How It Works</h2>
+            <p class="section-subtitle">Three simple steps to check originality</p>
+
+            <div class="steps-container" role="list">
+                <div class="step" role="listitem">
+                    <div class="step-number">1</div>
+                    <h3>Upload or Paste</h3>
+                    <p>Upload files or paste content quickly. Supports DOCX, PDF, and TXT files.</p>
+                </div>
+
+                <div class="step" role="listitem">
+                    <div class="step-number">2</div>
+                    <h3>AI Analysis</h3>
+                    <p>The system checks against web sources, academic material, and prior submissions for matches.</p>
+                </div>
+
+                <div class="step" role="listitem">
+                    <div class="step-number">3</div>
+                    <h3>Review Report</h3>
+                    <p>Get highlighted matches, source references, and an overall similarity score to make decisions with evidence.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="benefits" class="benefits-section" aria-labelledby="benefits-heading">
+            <h2 id="benefits-heading" class="section-title">Benefits for Teachers</h2>
+
+            <div class="benefits-grid" role="list">
+                <div class="benefit-item" role="listitem">
+                    <div class="benefit-icon">⏱️</div>
+                    <div class="benefit-text">
+                        <h4>Save Grading Time</h4>
+                        <p>Automated checks reduce manual searching — free up time for meaningful feedback.</p>
+                    </div>
+                </div>
+
+                <div class="benefit-item" role="listitem">
+                    <div class="benefit-icon">✅</div>
+                    <div class="benefit-text">
+                        <h4>Consistent Standards</h4>
+                        <p>Use evidence-based reports to keep grading fair and transparent across your class.</p>
+                    </div>
+                </div>
+
+                <div class="benefit-item" role="listitem">
+                    <div class="benefit-icon">📋</div>
+                    <div class="benefit-text">
+                        <h4>Evidence-Based Grading</h4>
+                        <p>Show students highlighted matches and sources to discuss issues objectively.</p>
+                    </div>
+                </div>
+
+                <div class="benefit-item" role="listitem">
+                    <div class="benefit-icon">🎓</div>
+                    <div class="benefit-text">
+                        <h4>Teach Good Practices</h4>
+                        <p>Turn reports into teaching moments — help students cite correctly and write originally.</p>
+                    </div>
+                </div>
+
+                <div class="benefit-item" role="listitem">
+                    <div class="benefit-icon">📈</div>
+                    <div class="benefit-text">
+                        <h4>Track Progress</h4>
+                        <p>Monitor originality trends per student and intervene where needed.</p>
+                    </div>
+                </div>
+
+                <div class="benefit-item" role="listitem">
+                    <div class="benefit-icon">🌍</div>
+                    <div class="benefit-text">
+                        <h4>Always Accessible</h4>
+                        <p>Check assignments anywhere — the UI is lightweight and mobile-friendly.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="faq-section" aria-labelledby="faq-heading">
+            <h2 id="faq-heading" class="faq-title">Frequently Asked Questions</h2>
+            <p class="faq-sub">Quick answers about IntelliCheck</p>
+
+            <div class="faq-list">
+                <details class="faq-item">
+                    <summary>
+                        <span style="display:flex;align-items:center;">
+                            <span class="faq-icon">Q1</span>
+                            How secure is my students' data?
+                        </span>
+                        <span class="chev">▾</span>
+                    </summary>
+                    <div class="faq-answer">All uploads are encrypted in transit and processed using privacy-first defaults. Retention is configurable in your settings.</div>
+                </details>
+
+                <details class="faq-item">
+                    <summary>
+                        <span style="display:flex;align-items:center;">
+                            <span class="faq-icon">Q2</span>
+                            What sources are checked?
+                        </span>
+                        <span class="chev">▾</span>
+                    </summary>
+                    <div class="faq-answer">IntelliCheck compares submissions against web sources, academic publications, and previously submitted student work to find matches and high-similarity passages.</div>
+                </details>
+
+                <details class="faq-item">
+                    <summary>
+                        <span style="display:flex;align-items:center;">
+                            <span class="faq-icon">Q3</span>
+                            Can it detect paraphrasing or AI-generated text?
+                        </span>
+                        <span class="chev">▾</span>
+                    </summary>
+                    <div class="faq-answer">Yes — our analysis flags paraphrased sections and patterns typically found in AI-assisted writing, but human review is recommended for final decisions.</div>
+                </details>
+            </div>
+        </section>
+
+        <section class="final-cta" aria-labelledby="final-cta-heading">
+            <h2 id="final-cta-heading">Ready to Streamline Your Grading?</h2>
+            <p>Join educators who trust IntelliCheck to keep classrooms honest — fast checks, clear evidence, and beautiful reports.</p>
+            <a href="index.html" class="cta-button" aria-label="Open the plagiarism checker">Start Checking Assignments</a>
+        </section>
+    </main>
+
+    <footer class="footer" role="contentinfo">
+        <p>&copy; 2024 IntelliCheck. Empowering educators to uphold academic integrity.</p>
+    </footer>
+</body>
+</html>
